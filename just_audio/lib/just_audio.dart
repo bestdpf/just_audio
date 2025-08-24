@@ -3726,7 +3726,7 @@ _ProxyHandler _proxyHandlerForSource(StreamAudioSource source) {
       request.response.headers.set(HttpHeaders.acceptRangesHeader, 'bytes');
     }
 
-    if (rangeRequest != null && sourceResponse.offset != null) {
+    if (rangeRequest != null && sourceResponse.offset != null && sourceResponse.contentLength != null) {
       final range = _HttpRangeResponse(
           sourceResponse.offset!,
           sourceResponse.offset! + sourceResponse.contentLength! - 1,
@@ -3736,7 +3736,12 @@ _ProxyHandler _proxyHandlerForSource(StreamAudioSource source) {
           .set(HttpHeaders.contentRangeHeader, range.header);
       request.response.statusCode = 206;
     } else {
-      request.response.contentLength = sourceResponse.contentLength ?? -1;
+      if (sourceResponse.contentLength != null){
+        request.response.contentLength = sourceResponse.contentLength!;
+      } else {
+        request.response.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
+        request.response.headers.set(HttpHeaders.connectionHeader, 'close');
+      }
       request.response.statusCode = 200;
     }
 
