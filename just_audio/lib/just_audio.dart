@@ -3732,9 +3732,16 @@ _ProxyHandler _proxyHandlerForSource(StreamAudioSource source) {
           sourceResponse.offset! + sourceResponse.contentLength! - 1,
           sourceResponse.sourceLength);
       request.response.contentLength = range.length ?? -1;
-      request.response.headers
-          .set(HttpHeaders.contentRangeHeader, range.header);
-      request.response.statusCode = 206;
+      if (sourceResponse.sourceLength != null
+          && sourceResponse.offset! + sourceResponse.contentLength! == sourceResponse.sourceLength!){
+        // finish content
+        request.response.statusCode = 200;
+      } else{
+        // not finished yet
+        request.response.headers
+            .set(HttpHeaders.contentRangeHeader, range.header);
+        request.response.statusCode = 206;
+      }
     } else {
       if (sourceResponse.contentLength != null){
         request.response.contentLength = sourceResponse.contentLength!;
